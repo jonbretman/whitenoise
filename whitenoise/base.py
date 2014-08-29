@@ -32,7 +32,7 @@ class WhiteNoise(object):
     FOREVER = 10*365*24*60*60
 
     # Attributes that can be set by keyword args in the constructor
-    config_attrs = ('max_age', 'allow_all_origins', 'charset')
+    config_attrs = ('max_age', 'allow_all_origins', 'charset', 'always_check_last_modified')
     max_age = 60
     # Set 'Access-Control-Allow-Orign: *' header on all files.
     # As these are all public static files this is safe (See
@@ -41,6 +41,7 @@ class WhiteNoise(object):
     # served from a CDN, rather than your primary domain.
     allow_all_origins = True
     charset = 'utf-8'
+    always_check_last_modified = False
 
     def __init__(self, application, root=None, prefix=None, **kwargs):
         for attr in self.config_attrs:
@@ -90,6 +91,8 @@ class WhiteNoise(object):
             last_requested = environ['HTTP_IF_MODIFIED_SINCE']
         except KeyError:
             return False
+        if self.always_check_last_modified:
+            self.add_stat_headers(static_file, None)
         # Exact match, no need to parse
         if last_requested == static_file.headers['Last-Modified']:
             return True
